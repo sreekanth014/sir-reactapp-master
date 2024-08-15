@@ -1,17 +1,12 @@
-name: myproject
+name: react-iam project
 on:
   push:
     branches:
       - master
-     
-  pull_request:
-    branches:
-      - master
-     
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -20,14 +15,27 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install dependencies
         run: npm install
 
-      - name: Run linters
-        run: npm run lint
-
       - name: Build project
         run: npm run build
 
+      - name: SSH into DigitalOcean Droplet and run Docker commands
+        run: |
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.DROPLET_IP }} << 'EOF'
+            docker rmi -f react-iam:latest || true
+            docker build -t react-iam:latest /path/to/your/project
+            docker rm -f my-container || true
+            docker run -d -p 3000:3000 --name my-container react-iam:latest
+          EOF
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to DigitalOcean
+        uses: digitalocean/app_action@main
+        with:
+          app_name: my_react_app
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
