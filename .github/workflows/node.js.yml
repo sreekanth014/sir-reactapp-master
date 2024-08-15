@@ -18,9 +18,7 @@ jobs:
         run: echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_REGISTRY_USERNAME }} --password-stdin ${{ secrets.DOCKER_REGISTRY }}
 
       - name: Build and Push Docker Image
-        run: docker buildx build --push --platform linux/amd64 \
-            -t ${{ secrets.DOCKER_REGISTRY }}/my-image:${{ github.sha }} \
-            -f Dockerfile .
+        run: docker buildx build --push --platform linux/amd64 -t ${{ secrets.DOCKER_REGISTRY }}/my-image:${{ github.sha }} -f Dockerfile .
 
       - name: Deploy to DigitalOcean
         uses: digitalocean/app_action@main
